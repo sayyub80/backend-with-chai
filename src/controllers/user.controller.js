@@ -16,37 +16,40 @@ const registerUser = asyncHandler( async (req, res) => {
     // return res
 
 
-    const {fullName, email, username, password } = req.body
+    const {username,fullName, email,  password } = req.body
     console.log("email: ", email);
-
-    if (
-        [fullName, email, username, password].some((field) => field?.trim() === "")        // The some() method executes the callback function once for each array element.
+    
+    
+    if ( 
+        [fullName, email, username, password].some((field) => field?.trim()=== "")        // The some() method executes the callback function once for each array element.
     ) {
         throw new ApiError(400, "All fields are required")
-    }
-
-    const existedUser = User.findOne({
+        
+    } 
+ 
+    const existedUser =await User.findOne({
         $or: [{ username }, { email }]
     })
 
     if (existedUser) {
         throw new ApiError(409, "User with email or username already exists")
     }
-
-    const avatarLocalPath =req.files?.avatar[0]?.path 
-    const coverImageLocalPath =req.files?.coverImage[0]?.path 
-    
-
-    if(!avatarLocalPath){
+     
+   
+    const avatarLocalPath =req.files?.avatar?.[0]?.path; 
+    const coverImageLocalPath = req.files?.coverImage?.[0].path;  //coverImage?. This will ensure coverImage exists before trying to access its index,
+    console.log(!avatarLocalPath); 
+  
+    if(!avatarLocalPath){ 
         throw new ApiError(400,"Avatar file is required ")
     }
-
-    //upload ron cloudinary
+ 
+    //upload on cloudinary
     const avatar = await uploadOnCloudinary(avatarLocalPath)
     const coverImage = await uploadOnCloudinary(coverImageLocalPath)
-
+     console.log(avatar)
     if(!avatar){
-        throw new ApiError(400,"Avatar file is required ")
+        throw new ApiError(401,"Avatar file is required ")
     }
 
 
@@ -57,7 +60,8 @@ const registerUser = asyncHandler( async (req, res) => {
         coverImage: coverImage?.url || "",
         email, 
         password,
-        username: username.toLowerCase()
+        username:username.toLowerCase()
+
     })
 
     const createdUser = await User.findById(user._id).select(
@@ -72,6 +76,6 @@ const registerUser = asyncHandler( async (req, res) => {
         new ApiResponse(200, createdUser, "User registered Successfully")
     )
 
-} )
+ } )
 
-export {registerUser}
+ export {registerUser} 
